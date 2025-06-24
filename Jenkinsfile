@@ -13,6 +13,13 @@ pipeline {
             }
         }
 
+        stage('Debug Python') {
+            steps {
+                bat 'where python'
+                bat 'python --version'
+            }
+        }
+
         stage('Setup Python Env') {
             steps {
                 bat '''
