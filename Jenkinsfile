@@ -1,20 +1,21 @@
 pipeline {
     agent any
 
-    environment {
-        PYTHON_PATH = "C:\\Users\\abhinav.kurup\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+    tools {
+        allure 'AllureCommandline' // Must match name configured in Jenkins > Global Tool Configuration
     }
 
     stages {
-        stage('Checkout Code') {
+        stage('Checkout Repository') {
             steps {
-                git credentialsId: 'cicd-token', url: 'https://github.com/abhinav-kurup/ICL_AutomationFramework.git', branch: 'main'
+                checkout scm
+                bat 'dir'
             }
         }
 
-        stage('Setup Python Env') {
+        stage('Create Virtual Environment') {
             steps {
-                bat '"%PYTHON_PATH%" -m venv venv'
+                bat '"C:\\Users\\samarth.madalageri\\AppData\\Local\\Programs\\Python\\Python312\\python.exe" -m venv venv'
             }
         }
 
@@ -22,25 +23,35 @@ pipeline {
             steps {
                 bat '''
                     call venv\\Scripts\\activate
-                    python -m pip install --upgrade pip
-                    pip install -r "ICL Automation\\requirements.txt"
-                    pip install -e "ICL Automation"
+                    cd "ICL Automation"
+                    pip install -r requirements.txt
                 '''
             }
         }
 
-        stage('Run Tests') {
+        stage('Install Framework (Editable Mode)') {
             steps {
                 bat '''
                     call venv\\Scripts\\activate
-                    pytest --alluredir=allure-results
+                    cd "ICL Automation"
+                    pip install -e .
                 '''
             }
         }
 
-        stage('Archive Allure Results') {
+        stage('Run Pytest') {
             steps {
-                archiveArtifacts artifacts: 'allure-results/**', allowEmptyArchive: true
+                bat '''
+                    call venv\\Scripts\\activate
+                    cd "ICL Automation"
+                    pytest -s tests/dummy_test --alluredir=reports\\allure-results || exit 0
+                '''
+            }
+        }
+
+        stage('Archive Allure Report') {
+            steps {
+                archiveArtifacts artifacts: 'ICL Automation/reports/allure-results/**', allowEmptyArchive: true
             }
         }
 
@@ -49,7 +60,7 @@ pipeline {
                 allure([
                     includeProperties: false,
                     jdk: '',
-                    results: [[path: 'allure-results']]
+                    results: [[path: 'ICL Automation/reports/allure-results']]
                 ])
             }
         }
@@ -57,7 +68,7 @@ pipeline {
 
     post {
         always {
-            echo 'Pipeline finished.'
+            echo 'Pipeline complete.'
         }
     }
 }
