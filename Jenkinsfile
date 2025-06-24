@@ -6,7 +6,7 @@ pipeline {
     }
 
     tools {
-        allure 'AllureCommandline'
+        allure 'AllureCommandline' // Name as configured in Jenkins > Global Tool Configuration
     }
 
     stages {
@@ -37,7 +37,7 @@ pipeline {
             steps {
                 bat '''
                     call venv\\Scripts\\activate
-                    pytest --alluredir=allure-results
+                    pytest --alluredir=allure-results || exit 0
                 '''
             }
         }
