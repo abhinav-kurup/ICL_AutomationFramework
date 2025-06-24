@@ -8,7 +8,7 @@ pipeline {
     stages {
         stage('Checkout Code') {
             steps {
-                git branch: 'main', credentialsId: 'cicd-token', url: 'https://github.com/abhinav-kurup/ICL_AutomationFramework.git'
+                git credentialsId: 'cicd-token', url: 'https://github.com/abhinav-kurup/ICL_AutomationFramework.git', branch: 'main'
             }
         }
 
@@ -22,9 +22,9 @@ pipeline {
             steps {
                 bat '''
                     call venv\\Scripts\\activate
-                    pip install --upgrade pip
+                    python -m pip install --upgrade pip
                     pip install -r "ICL Automation\\requirements.txt"
-                    pip install .
+                    pip install -e "ICL Automation"
                 '''
             }
         }
