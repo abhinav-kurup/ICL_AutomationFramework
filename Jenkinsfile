@@ -1,11 +1,6 @@
 pipeline {
     agent any
 
-    environment {
-        VENV_DIR = 'venv'
-        WORK_DIR = 'ICL Automation'
-    }
-
     stages {
         stage('Checkout Code') {
             steps {
@@ -13,27 +8,18 @@ pipeline {
             }
         }
 
-        stage('Debug Python') {
-            steps {
-                bat 'where python'
-                bat 'python --version'
-            }
-        }
-
         stage('Setup Python Env') {
             steps {
-                bat '''
-                python -m venv venv
-                '''
+                bat '"C:\\Users\\abhinav.kurup\\AppData\\Local\\Programs\\Python\\Python312\\python.exe" -m venv venv'
             }
         }
 
-        stage('Install Dependencies') {
+        stage('Activate & Install Dependencies') {
             steps {
                 bat '''
                 call venv\\Scripts\\activate
-                cd "ICL Automation"
-                pip install -r requirements.txt
+                pip install -r "ICL Automation\\requirements.txt"
+                pip install -e "ICL Automation"
                 '''
             }
         }
@@ -42,21 +28,14 @@ pipeline {
             steps {
                 bat '''
                 call venv\\Scripts\\activate
-                cd "ICL Automation"
-                pytest -s tests/demo --alluredir=reports/allure-results || exit 0
+                pytest -s "ICL Automation\\tests\\demo" --alluredir="ICL Automation\\reports\\allure-results"
                 '''
             }
         }
 
         stage('Archive Allure Results') {
             steps {
-                archiveArtifacts artifacts: "ICL Automation/reports/allure-results/**", allowEmptyArchive: true
-            }
-        }
-
-        stage('Publish Allure Report') {
-            steps {
-                allure includeProperties: false, results: [[path: "ICL Automation/reports/allure-results"]]
+                archiveArtifacts artifacts: 'ICL Automation/reports/allure-results/**', allowEmptyArchive: true
             }
         }
     }
