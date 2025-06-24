@@ -1,0 +1,14 @@
+selenium==4.22.0
+pytest==8.2.2
+allure-pytest==2.13.5
+requests==2.31.0
+jsonschema==4.22.0
+pyautogui==0.9.54
+PyYAML==6.0
+webdriver-manager==4.0.1
+pyscreenshot==3.1
+openpyxl
+-e .
+pyodbc
+oracledb
+pyotp
