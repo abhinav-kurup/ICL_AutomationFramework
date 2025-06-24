@@ -9,7 +9,7 @@ pipeline {
     stages {
         stage('Checkout Code') {
             steps {
-                git url: 'https://github.com/abhinav-kurup/ICL_AutomationFramework.git', branch: 'shivamkonkar'
+                git url: 'https://github.com/abhinav-kurup/ICL_AutomationFramework.git', branch: 'main'
             }
         }
 
