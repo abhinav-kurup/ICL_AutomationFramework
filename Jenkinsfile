@@ -2,20 +2,20 @@ pipeline {
     agent any
 
     tools {
-        allure 'AllureCommandline' // Must match name configured in Jenkins > Global Tool Configuration
+        python 'Python3.12'          // Name configured in Jenkins > Global Tool Configuration
+        allure 'AllureCommandline'   // Name configured in Jenkins > Global Tool Configuration
     }
 
     stages {
-        stage('Checkout Repository') {
+        stage('Checkout Code') {
             steps {
-                checkout scm
-                bat 'dir'
+                git credentialsId: 'cicd-token', url: 'https://github.com/abhinav-kurup/ICL_AutomationFramework.git', branch: 'main'
             }
         }
 
-        stage('Create Virtual Environment') {
+        stage('Setup Python Env') {
             steps {
-                bat '"C:\\Users\\samarth.madalageri\\AppData\\Local\\Programs\\Python\\Python312\\python.exe" -m venv venv'
+                bat 'python -m venv venv'
             }
         }
 
@@ -23,35 +23,25 @@ pipeline {
             steps {
                 bat '''
                     call venv\\Scripts\\activate
-                    cd "ICL Automation"
-                    pip install -r requirements.txt
+                    python -m pip install --upgrade pip
+                    pip install -r "ICL Automation\\requirements.txt"
+                    pip install -e "ICL Automation"
                 '''
             }
         }
 
-        stage('Install Framework (Editable Mode)') {
+        stage('Run Tests') {
             steps {
                 bat '''
                     call venv\\Scripts\\activate
-                    cd "ICL Automation"
-                    pip install -e .
+                    pytest --alluredir=allure-results
                 '''
             }
         }
 
-        stage('Run Pytest') {
+        stage('Archive Allure Results') {
             steps {
-                bat '''
-                    call venv\\Scripts\\activate
-                    cd "ICL Automation"
-                    pytest -s tests/dummy_test --alluredir=reports\\allure-results || exit 0
-                '''
-            }
-        }
-
-        stage('Archive Allure Report') {
-            steps {
-                archiveArtifacts artifacts: 'ICL Automation/reports/allure-results/**', allowEmptyArchive: true
+                archiveArtifacts artifacts: 'allure-results/**', allowEmptyArchive: true
             }
         }
 
@@ -60,7 +50,7 @@ pipeline {
                 allure([
                     includeProperties: false,
                     jdk: '',
-                    results: [[path: 'ICL Automation/reports/allure-results']]
+                    results: [[path: 'allure-results']]
                 ])
             }
         }
@@ -68,7 +58,7 @@ pipeline {
 
     post {
         always {
-            echo 'Pipeline complete.'
+            echo 'Pipeline finished.'
         }
     }
 }
