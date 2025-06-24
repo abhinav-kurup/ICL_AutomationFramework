@@ -15,29 +15,28 @@ pipeline {
 
         stage('Setup Python Env') {
             steps {
-                sh '''
-                    python3 -m venv venv
-                    source venv/bin/activate
+                bat '''
+                python -m venv venv
                 '''
             }
         }
 
         stage('Install Dependencies') {
             steps {
-                sh '''
-                    source venv/bin/activate
-                    cd "ICL Automation"
-                    pip install -r requirements.txt
+                bat '''
+                call venv\\Scripts\\activate
+                cd "ICL Automation"
+                pip install -r requirements.txt
                 '''
             }
         }
 
         stage('Run Tests') {
             steps {
-                sh '''
-                    source venv/bin/activate
-                    cd "ICL Automation"
-                    pytest -s tests/demo --alluredir=reports/allure-results || true
+                bat '''
+                call venv\\Scripts\\activate
+                cd "ICL Automation"
+                pytest -s tests/demo --alluredir=reports/allure-results || exit 0
                 '''
             }
         }
