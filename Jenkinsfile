@@ -1,9 +1,12 @@
 pipeline {
     agent any
 
+    environment {
+        PYTHON_PATH = "C:\\Users\\abhinav.kurup\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+    }
+
     tools {
-        python 'Python3.12'          // Name configured in Jenkins > Global Tool Configuration
-        allure 'AllureCommandline'   // Name configured in Jenkins > Global Tool Configuration
+        allure 'AllureCommandline'
     }
 
     stages {
@@ -15,7 +18,7 @@ pipeline {
 
         stage('Setup Python Env') {
             steps {
-                bat 'python -m venv venv'
+                bat '"%PYTHON_PATH%" -m venv venv'
             }
         }
 
