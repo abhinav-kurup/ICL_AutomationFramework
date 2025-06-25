@@ -59,4 +59,4 @@ def test_inventory_items(driver):
     driver.find_element(By.ID, "password").send_keys("secret_sauce")
     driver.find_element(By.ID, "login-button").click()
     items = driver.find_elements(By.CLASS_NAME, "inventory_item")
-    assert len(items) > 0, "No inventory items found after login"
+    assert len(items) == 0, "No inventory items found after login"
