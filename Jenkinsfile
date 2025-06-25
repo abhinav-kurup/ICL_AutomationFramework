@@ -1,31 +1,36 @@
 pipeline {
     agent any
 
-    environment {
-        PYTHON_HOME = tool name: 'Python312', type: 'jenkins.plugins.shiningpanda.tools.PythonInstallation'
+    tools {
+        // Reference to tools configured in Jenkins > Global Tool Configuration
+        allure 'AllureCommandline'
+        python 'Python312' // Name of Python tool in Jenkins (adjust if named differently)
     }
 
-    tools {
-        allure 'AllureCommandline'
+    environment {
+        VENV_DIR = 'venv'
     }
 
     stages {
         stage('Checkout Code') {
             steps {
-                git credentialsId: 'cicd-token', url: 'https://github.com/abhinav-kurup/ICL_AutomationFramework.git', branch: 'main'
+                git credentialsId: 'cicd-token',
+                    url: 'https://github.com/abhinav-kurup/ICL_AutomationFramework.git',
+                    branch: 'main'
             }
         }
 
         stage('Setup Python Env') {
             steps {
-                bat '"%PYTHON_HOME%\\python.exe" -m venv venv'
+                bat 'python --version'
+                bat 'python -m venv %VENV_DIR%'
             }
         }
 
         stage('Install Dependencies') {
             steps {
                 bat '''
-                    call venv\\Scripts\\activate
+                    call %VENV_DIR%\\Scripts\\activate
                     python -m pip install --upgrade pip
                     pip install -r "ICL Automation\\requirements.txt"
                     pip install -e "ICL Automation"
@@ -37,8 +42,8 @@ pipeline {
             steps {
                 bat '''
                     if exist allure-results (rmdir /s /q allure-results)
-                    call venv\\Scripts\\activate
-                    pytest --alluredir=allure-results || exit /b 0
+                    call %VENV_DIR%\\Scripts\\activate
+                    pytest "ICL Automation\\tests" --alluredir=allure-results || exit /b 0
                 '''
             }
         }
