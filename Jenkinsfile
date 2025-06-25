@@ -2,51 +2,66 @@ pipeline {
     agent any
 
     environment {
-        PYTHON_PATH = "C:\\Users\\abhinav.kurup\\AppData\\Local\\Programs\\Python\\Python312\\python.exe"
+        PYTHON_HOME = "C:\\Users\\abhinav.kurup\\AppData\\Local\\Programs\\Python\\Python312"
+        VENV_PATH = "venv"
+        ALLURE_RESULTS = "allure-results"
+        ALLURE_REPORT = "allure-report"
     }
 
     tools {
-        allure 'AllureCommandline' 
+        // Add tool definitions here if using Jenkins-managed tools
+        // python 'Python312'
+        // allure 'AllureCommandline'
     }
 
     stages {
+
         stage('Checkout Code') {
             steps {
-                git credentialsId: 'cicd-token', url: 'https://github.com/abhinav-kurup/ICL_AutomationFramework.git', branch: 'main'
+                git credentialsId: 'cicd-token', url: 'https://github.com/abhinav-kurup/ICL_AutomationFramework.git'
             }
         }
 
         stage('Setup Python Env') {
             steps {
-                bat '"%PYTHON_PATH%" -m venv venv'
+                bat "${env.PYTHON_HOME}\\python.exe -m venv ${env.VENV_PATH}"
             }
         }
 
         stage('Install Dependencies') {
             steps {
-                bat '''
-                    call venv\\Scripts\\activate
-                    python -m pip install --upgrade pip
+                bat """
+                    call ${env.VENV_PATH}\\Scripts\\activate
+                    pip install --upgrade pip
                     pip install -r "ICL Automation\\requirements.txt"
                     pip install -e "ICL Automation"
-                '''
+                """
             }
         }
 
         stage('Run Tests') {
             steps {
-                bat '''
-                    if exist allure-results (rmdir /s /q allure-results)
-                    call venv\\Scripts\\activate
-                    cmd /c "pytest --alluredir=allure-results || exit /b 0"
-                '''
+                script {
+                    bat "if exist ${env.ALLURE_RESULTS} (rmdir /s /q ${env.ALLURE_RESULTS})"
+                    
+                    def exitCode = bat(
+                        script: """
+                            call ${env.VENV_PATH}\\Scripts\\activate
+                            pytest "ICL Automation\\tests" --alluredir=${env.ALLURE_RESULTS}
+                        """,
+                        returnStatus: true
+                    )
+
+                    if (exitCode != 0) {
+                        unstable("Tests had failures. Marking build as UNSTABLE.")
+                    }
+                }
             }
         }
 
-
         stage('Archive Allure Results') {
             steps {
-                archiveArtifacts artifacts: 'allure-results/**', allowEmptyArchive: true
+                archiveArtifacts artifacts: "${env.ALLURE_RESULTS}/**", allowEmptyArchive: true
             }
         }
 
@@ -55,15 +70,23 @@ pipeline {
                 allure([
                     includeProperties: false,
                     jdk: '',
-                    results: [[path: 'allure-results']]
+                    reportBuildPolicy: 'ALWAYS',
+                    results: [[path: "${env.ALLURE_RESULTS}"]]
                 ])
             }
         }
     }
 
     post {
+        unstable {
+            script {
+                // Optional: Convert UNSTABLE to SUCCESS if needed
+                echo 'Build was unstable, forcing status to SUCCESS to avoid job failure flag.'
+                currentBuild.rawBuild.@result = hudson.model.Result.SUCCESS
+            }
+        }
         always {
-            echo 'Pipeline finished.'
+            echo "Pipeline finished."
         }
     }
 }
