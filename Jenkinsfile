@@ -39,10 +39,10 @@ pipeline {
                     if exist allure-results (rmdir /s /q allure-results)
                     call venv\\Scripts\\activate
                     cmd /c "pytest --alluredir=allure-results || exit /b 0"
-
                 '''
             }
         }
+
 
         stage('Archive Allure Results') {
             steps {
