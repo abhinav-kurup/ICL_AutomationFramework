@@ -8,12 +8,6 @@ pipeline {
         ALLURE_REPORT = "allure-report"
     }
 
-    tools {
-        // Add tool definitions here if using Jenkins-managed tools
-        // python 'Python312'
-        // allure 'AllureCommandline'
-    }
-
     stages {
 
         stage('Checkout Code') {
@@ -80,7 +74,6 @@ pipeline {
     post {
         unstable {
             script {
-                // Optional: Convert UNSTABLE to SUCCESS if needed
                 echo 'Build was unstable, forcing status to SUCCESS to avoid job failure flag.'
                 currentBuild.rawBuild.@result = hudson.model.Result.SUCCESS
             }
