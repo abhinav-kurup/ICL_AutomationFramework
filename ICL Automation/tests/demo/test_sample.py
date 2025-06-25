@@ -51,7 +51,7 @@ def test_invalid_login(driver):
     driver.find_element(By.ID, "login-button").click()
     error_element = driver.find_element(By.XPATH, "//h3[@data-test='error']")
     assert error_element.is_displayed(), "Error message should appear for invalid login"
-
+#"""
 
 @allure.title("Verify inventory items are visible after login")
 def test_inventory_items(driver):
