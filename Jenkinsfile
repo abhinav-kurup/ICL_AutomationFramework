@@ -1,9 +1,12 @@
 pipeline {
     agent any
 
+    environment {
+        PYTHON_HOME = tool name: 'Python312', type: 'jenkins.plugins.shiningpanda.tools.PythonInstallation'
+    }
+
     tools {
-        python 'Python312'            // Use Jenkins-managed Python
-        allure 'AllureCommandline'    // Use Jenkins-managed Allure
+        allure 'AllureCommandline'
     }
 
     stages {
@@ -15,7 +18,7 @@ pipeline {
 
         stage('Setup Python Env') {
             steps {
-                bat 'python -m venv venv'
+                bat '"%PYTHON_HOME%\\python.exe" -m venv venv'
             }
         }
 
