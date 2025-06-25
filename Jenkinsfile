@@ -38,7 +38,8 @@ pipeline {
                 bat '''
                     if exist allure-results (rmdir /s /q allure-results)
                     call venv\\Scripts\\activate
-                    pytest --alluredir=allure-results || exit 0
+                    cmd /c "pytest --alluredir=allure-results || exit /b 0"
+
                 '''
             }
         }
