@@ -36,21 +36,36 @@ pipeline {
 
         stage('Run Tests') {
             steps {
-                bat """
-                    if exist allure-results (rmdir /s /q allure-results)
-                    call ${VENV_DIR}\\Scripts\\activate
-                    pytest "ICL Automation\\tests" --alluredir=allure-results
-                """
+                script {
+                    def result = bat(
+                        script: """
+                            if exist allure-results (rmdir /s /q allure-results)
+                            call ${VENV_DIR}\\Scripts\\activate
+                            pytest "ICL Automation\\tests" --alluredir=allure-results
+                        """,
+                        returnStatus: true
+                    )
+                    if (result != 0) {
+                        currentBuild.result = 'UNSTABLE'
+                        echo "Some tests failed. Marking build as UNSTABLE."
+                    }
+                }
             }
         }
 
         stage('Archive Allure Results') {
+            when {
+                expression { fileExists('allure-results') }
+            }
             steps {
                 archiveArtifacts artifacts: 'allure-results/**', allowEmptyArchive: true
             }
         }
 
         stage('Publish Allure Report') {
+            when {
+                expression { fileExists('allure-results') }
+            }
             steps {
                 allure includeProperties: false, jdk: '', results: [[path: 'allure-results']]
             }
@@ -58,11 +73,8 @@ pipeline {
     }
 
     post {
-        unstable {
-            echo '⚠️ Some tests failed. Build marked as UNSTABLE.'
-        }
         always {
-            echo 'Pipeline finished.'
+            echo "Pipeline finished."
         }
     }
 }
